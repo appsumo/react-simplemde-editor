@@ -2,37 +2,46 @@ const React = require('react');
 const generateId = require('./services/idGenerator');
 const NOOP = require('./utils/noop');
 
-module.exports = React.createClass({
+class SimpleMDEEditor extends React.Component {
+  constructor(props) {
+    super(props);
 
-  getInitialState: function() {
+    this.createEditor = this.createEditor.bind(this);
+    this.eventWrapper = this.eventWrapper.bind(this);
+    this.removeEvents = this.removeEvents.bind(this);
+    this.addEvents = this.addEvents.bind(this);
+    this.addExtraKeys = this.addExtraKeys.bind(this);
+  }
+
+  getInitialState() {
     return {
       keyChange: false
     }
-  },
+  }
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
       onChange: NOOP,
       options: {}
     }
-  },
+  }
 
-  componentWillMount: function() {
+  componentWillMount() {
     const id = this.props.id;
     if (id) {
       this.id = id;
     } else {
       this.id = generateId();
     }
-  },
+  }
 
-  componentDidMount: function() {
+  componentDidMount() {
     this.createEditor();
     this.addEvents();
     this.addExtraKeys();
-  },
+  }
 
-  componentWillReceiveProps: function(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (!this.state.keyChange && (nextProps.value !== this.simplemde.value())) {
       this.simplemde.value(nextProps.value)
     }
@@ -40,13 +49,13 @@ module.exports = React.createClass({
     this.setState({
       keyChange: false
     });
-  },
+  }
 
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     this.removeEvents();
-  },
+  }
 
-  createEditor: function() {
+  createEditor() {
     const SimpleMDE = require('simplemde');
     const initialOptions = {
       element: document.getElementById(this.id),
@@ -55,21 +64,21 @@ module.exports = React.createClass({
 
     const allOptions = Object.assign({}, initialOptions, this.props.options);
     this.simplemde = new SimpleMDE(allOptions);
-  },
+  }
 
-  eventWrapper: function() {
+  eventWrapper() {
     this.setState({
       keyChange: true
     });
     this.props.onChange(this.simplemde.value());
-  },
+  }
 
-  removeEvents: function() {
+  removeEvents() {
     this.editorEl.removeEventListener('keyup', this.eventWrapper);
     this.editorToolbarEl && this.editorToolbarEl.removeEventListener('click', this.eventWrapper);
-  },
+  }
 
-  addEvents: function() {
+  addEvents() {
     const wrapperId = `${this.id}-wrapper`;
     const wrapperEl = document.getElementById(`${wrapperId}`);
 
@@ -78,9 +87,9 @@ module.exports = React.createClass({
 
     this.editorEl.addEventListener('keyup', this.eventWrapper);
     this.editorToolbarEl && this.editorToolbarEl.addEventListener('click', this.eventWrapper);
-  },
+  }
 
-  addExtraKeys: function() {
+  addExtraKeys() {
     // https://codemirror.net/doc/manual.html#option_extraKeys
     if (this.props.extraKeys) {
       this.simplemde.codemirror.setOption(
@@ -88,10 +97,12 @@ module.exports = React.createClass({
         this.props.extraKeys
       );
     }
-  },
+  }
 
-  render: function() {
+  render() {
     const textarea = React.createElement('textarea', {id: this.id});
     return React.createElement('div', {id: `${this.id}-wrapper`, className: this.props.className}, textarea);
   }
-});
+}
+
+export default SimpleMDEEditor;
